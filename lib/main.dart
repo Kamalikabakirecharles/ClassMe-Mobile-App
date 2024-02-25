@@ -2,8 +2,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_2/ThemeProvider.dart';
 import 'package:flutter_application_2/my_drawer_header.dart';
+import 'package:flutter_application_2/pages/Contact.dart';
 import 'package:flutter_application_2/pages/about.dart';
 import 'package:flutter_application_2/pages/calculator.dart';
+import 'package:flutter_application_2/pages/gallery.dart';
 import 'package:flutter_application_2/pages/login.dart';
 import 'package:flutter_application_2/pages/settings.dart';
 import 'package:flutter_blue/flutter_blue.dart';
@@ -216,6 +218,18 @@ class _MyHomePageState extends State<MyHomePage> {
           MaterialPageRoute(builder: (context) => AboutPage()),
         );
         break;
+        case "Contact":
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => ContactPage()),
+        );
+        break;
+        case "Gallery":
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => PickImage()),
+        );
+        break;
       case "Settings":
         Navigator.push(
           context,
@@ -247,12 +261,20 @@ class _MyHomePageState extends State<MyHomePage> {
                 if (isOnline)
                   Padding(
                     padding: EdgeInsets.only(right: 8.0),
-                    child: Icon(Icons.wifi, color: Colors.white, size: 20,),
+                    child: Icon(
+                      Icons.wifi,
+                      color: Colors.white,
+                      size: 20,
+                    ),
                   ),
                 if (!isOnline)
                   Padding(
                     padding: EdgeInsets.only(right: 8.0),
-                    child: Icon(Icons.wifi_off, color: Colors.white, size: 20,),
+                    child: Icon(
+                      Icons.wifi_off,
+                      color: Colors.white,
+                      size: 20,
+                    ),
                   ),
                 if (isBluetoothEnabled)
                   Padding(
@@ -262,7 +284,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 if (!isBluetoothEnabled)
                   Padding(
                     padding: EdgeInsets.only(right: 8.0),
-                    child: Icon(Icons.bluetooth_disabled, color: Colors.white, size: 20),
+                    child: Icon(Icons.bluetooth_disabled,
+                        color: Colors.white, size: 20),
                   ),
               ],
             ),
@@ -340,13 +363,17 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
+
 class ToggleThemeButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
 
     return IconButton(
-      icon: Icon(Icons.palette, size: 20,),
+      icon: Icon(
+        Icons.palette,
+        size: 20,
+      ),
       color: Colors.white,
       onPressed: () {
         themeProvider.toggleTheme();

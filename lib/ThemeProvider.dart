@@ -80,24 +80,27 @@ class ThemeProvider with ChangeNotifier {
 
 
   ThemeData _getTheme(int? themeIndex) {
-    final totalThemes = 5; // Total number of themes including the original one
-
-    // Use modulo operator to loop back to the first theme when reaching the last one
-    final adjustedIndex = themeIndex! % totalThemes;
-
-    switch (adjustedIndex) {
-      case 1:
-        return _blueTheme;
-      case 2:
-        return _redTheme;
-      case 3:
-        return _purpleTheme;
-      case 4:
-        return _orangeTheme;
-      default:
-        return _greenTheme;
-    }
+  if (themeIndex == null) {
+    return _greenTheme; // Provide a default theme if themeIndex is null
   }
+
+  final totalThemes = 5;
+  final adjustedIndex = themeIndex % totalThemes;
+
+  switch (adjustedIndex) {
+    case 1:
+      return _blueTheme;
+    case 2:
+      return _redTheme;
+    case 3:
+      return _purpleTheme;
+    case 4:
+      return _orangeTheme;
+    default:
+      return _greenTheme;
+  }
+}
+
 
   static final ThemeData _greenTheme = ThemeData(
     primaryColor: greenPrimaryColor,

@@ -273,8 +273,7 @@ void _onMenuItemSelected(String title) {
           ),
         ),
         style: ElevatedButton.styleFrom(
-          shape: CircleBorder(),
-          primary: btncolor,
+          shape: CircleBorder(), backgroundColor: btncolor,
           padding: EdgeInsets.all(20),
         ),
       ),

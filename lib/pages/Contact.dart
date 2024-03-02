@@ -45,22 +45,34 @@ class _ContactPageState extends State<ContactPage> {
   }
 
   void _sendMessageToContact(Contact contact) async {
-  final phoneNumber = contact.phones?.first.value;
+    final phoneNumber = contact.phones?.first.value;
 
-  if (phoneNumber != null) {
-    final message = "Your SMS message here";
-    final uri = Uri.encodeFull("sms:$phoneNumber?body=$message");
+    if (phoneNumber != null) {
+      final message = "Your SMS message here";
+      final uri = Uri.encodeFull("sms:$phoneNumber?body=$message");
 
-    try {
-      await launch(uri);
-    } catch (e) {
-      print("Error launching messaging app: $e");
+      try {
+        await launch(uri);
+      } catch (e) {
+        print("Error launching messaging app: $e");
+      }
+    } else {
+      print("Phone number not available");
     }
-  } else {
-    print("Phone number not available");
   }
-}
 
+  void _sortContacts() {
+  _contacts.sort((a, b) => a.displayName!.compareTo(b.displayName!));
+  setState(() {
+    // Show a SnackBar indicating that contacts have been sorted
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Contacts sorted A-Z'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  });
+}
 
 
   @override
@@ -69,40 +81,45 @@ class _ContactPageState extends State<ContactPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Contact Page'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.sort),
+            onPressed: _sortContacts,
+          ),
+        ],
       ),
       body: ListView.builder(
         itemCount: _contacts.length,
         itemBuilder: (context, index) {
           final contact = _contacts[index];
           return ListTile(
-  leading: CircleAvatar(
-    child: Text(
-      contact.displayName![0], // Get the first letter of the contact's name
-      style: TextStyle(
-        color: Colors.white,
-      ),
-    ),
-    backgroundColor: themeProvider.currentTheme.primaryColor, // Customize the color of the circle
-  ),
-  title: Text(contact.displayName ?? ''),
-  subtitle: Text(contact.phones?.isNotEmpty == true
-      ? contact.phones!.first.value!
-      : 'No phone number'),
-  trailing: Row(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      IconButton(
-        icon: Icon(Icons.phone),
-        onPressed: () => _callContact(contact),
-      ),
-      IconButton(
-        icon: Icon(Icons.message),
-        onPressed: () => _sendMessageToContact(contact),
-      ),
-    ],
-  ),
-);
-
+            leading: CircleAvatar(
+              child: Text(
+                contact.displayName![0], // Get the first letter of the contact's name
+                style: TextStyle(
+                  color: Colors.white,
+                ),
+              ),
+              backgroundColor: themeProvider.currentTheme.primaryColor, // Customize the color of the circle
+            ),
+            title: Text(contact.displayName ?? ''),
+            subtitle: Text(contact.phones?.isNotEmpty == true
+                ? contact.phones!.first.value!
+                : 'No phone number'),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: Icon(Icons.phone),
+                  onPressed: () => _callContact(contact),
+                ),
+                IconButton(
+                  icon: Icon(Icons.message),
+                  onPressed: () => _sendMessageToContact(contact),
+                ),
+              ],
+            ),
+          );
         },
       ),
     );

@@ -1,6 +1,12 @@
 import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_application_2/pages/welcome.dart';
+import 'package:flutter_application_2/popup.dart';
+import 'firebase_options.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_2/ThemeProvider.dart';
+import 'package:flutter_application_2/google_signin_api.dart';
 import 'package:flutter_application_2/my_drawer_header.dart';
 import 'package:flutter_application_2/pages/Contact.dart';
 import 'package:flutter_application_2/pages/about.dart';
@@ -12,11 +18,15 @@ import 'package:flutter_blue/flutter_blue.dart';
 import 'package:provider/provider.dart';
 import 'package:connectivity/connectivity.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(
     ChangeNotifierProvider(
       create: (context) => ThemeProvider(),
-      child: const MyApp(),
+      child:  MyWelcomeApp(),
     ),
   );
 }
@@ -218,13 +228,13 @@ class _MyHomePageState extends State<MyHomePage> {
           MaterialPageRoute(builder: (context) => AboutPage()),
         );
         break;
-        case "Contact":
+      case "Contact":
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => ContactPage()),
         );
         break;
-        case "Gallery":
+      case "Gallery":
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => PickImage()),
@@ -237,11 +247,28 @@ class _MyHomePageState extends State<MyHomePage> {
         );
         break;
       case "LogOut":
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => LoginPage()),
-        );
+        logout();
         break;
+    }
+  }
+
+  Future<void> logout() async {
+    try {
+      await GoogleSignInApi.logout();
+      FirebaseAuth.instance.signOut();
+
+// Navigate to the login page and replace the current screen
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => MyWelcomeApp()),
+      );
+      // Show a success message
+      showPopup(context, 'Success', 'Successfully Logged Out!');
+    } catch (e) {
+      print('Error logging out: $e');
+
+      // Show an error message
+      showPopup(context, 'Error', 'Failed to log out. Please try again.');
     }
   }
 

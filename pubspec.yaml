@@ -46,6 +46,10 @@ dependencies:
   contacts_service: ^0.6.3
   permission_handler: ^11.3.0
   url_launcher: ^6.0.10
+  google_sign_in: ^5.0.3
+  firebase_core: ^2.4.0
+  firebase_auth: ^4.2.0
+  lottie: ^3.1.0
 
 
 dev_dependencies:
@@ -77,6 +81,7 @@ flutter:
     - lib/images/google.png
     - lib/images/apple.png
     - lib/images/default_profile_image.png
+    - lib/json/old_town_walk.json
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

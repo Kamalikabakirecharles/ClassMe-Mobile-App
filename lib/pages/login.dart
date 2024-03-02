@@ -1,5 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_2/ThemeProvider.dart';
+import 'package:flutter_application_2/auth_page.dart';
+import 'package:flutter_application_2/google_signin_api.dart';
+import 'package:flutter_application_2/main.dart';
 import 'package:flutter_application_2/my_button.dart';
 import 'package:flutter_application_2/my_textfield.dart';
 import 'package:flutter_application_2/square_tile.dart';
@@ -10,11 +14,33 @@ class LoginPage extends StatelessWidget {
   LoginPage({super.key});
 
   // text editing controllers
-  final usernameController = TextEditingController();
+  final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
   // sign user in method
-  void signUserIn() {}
+  void signUserIn(BuildContext context) async {
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: emailController.text,
+        password: passwordController.text,
+      );
+
+      // Navigate to the home page after successful login
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => AuthPage(),
+        ),
+      );
+    } catch (e) {
+      // Handle login errors here
+      print('Error logging in: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error logging in. Please try again.'),
+        ),
+      );
+    }
+  }
 
   // navigate to signup page
   void goToSignupPage(BuildContext context) {
@@ -33,7 +59,8 @@ class LoginPage extends StatelessWidget {
         backgroundColor: themeProvider.currentTheme.primaryColor,
         title: Text(
           'Login',
-          style: TextStyle(color: themeProvider.currentTheme.scaffoldBackgroundColor),
+          style: TextStyle(
+              color: themeProvider.currentTheme.scaffoldBackgroundColor),
         ),
       ),
       body: SafeArea(
@@ -50,7 +77,7 @@ class LoginPage extends StatelessWidget {
                   Icon(
                     Icons.account_circle_rounded,
                     size: 80,
-                    color: themeProvider.currentTheme.primaryColor, // Use your custom color or theme color
+                    color: themeProvider.currentTheme.primaryColor,
                   ),
 
                   const SizedBox(height: 20),
@@ -66,10 +93,10 @@ class LoginPage extends StatelessWidget {
 
                   const SizedBox(height: 15),
 
-                  // username textfield
+                  // Email textfield
                   MyTextField(
-                    controller: usernameController,
-                    hintText: 'Username',
+                    controller: emailController,
+                    hintText: 'Email',
                     obscureText: false,
                   ),
 
@@ -104,7 +131,7 @@ class LoginPage extends StatelessWidget {
 
                   // sign in button
                   MyButton(
-                    onTap: signUserIn,
+                    onTap: () => signUserIn(context),
                   ),
 
                   const SizedBox(height: 30),
@@ -147,14 +174,31 @@ class LoginPage extends StatelessWidget {
                   // google + apple sign in buttons
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
+                    children: [
                       // google button
-                      SquareTile(imagePath: 'lib/images/google.png'),
-
+                      GestureDetector(
+                        onTap: () async {
+                          final user = await GoogleSignInApi.login();
+                          if (user == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Sign in failed'),
+                              ),
+                            );
+                          } else {
+                            Navigator.of(context).pushReplacement(
+                              MaterialPageRoute(
+                                builder: (context) => MyApp(),
+                              ),
+                            );
+                          }
+                        },
+                        child: SquareTile(imagePath: 'lib/images/google.png'),
+                      ),
                       SizedBox(width: 25),
 
                       // apple button
-                      SquareTile(imagePath: 'lib/images/apple.png')
+                      SquareTile(imagePath: 'lib/images/apple.png'),
                     ],
                   ),
 

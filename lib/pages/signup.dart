@@ -42,12 +42,6 @@ class SignupPage extends StatelessWidget {
         // Show a success message
         showCustomPopup(context, 'Registration successful!');
 
-        // Navigate to the home page (MyApp)
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => MyApp(),
-          ),
-        );
       } on FirebaseAuthException catch (e) {
          // Handle registration errors
         print('Error during registration: ${e.message}');
@@ -78,7 +72,7 @@ class SignupPage extends StatelessWidget {
     // For example, navigate to another page.
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
-        builder: (context) => MyApp(),
+        builder: (context) => const MyApp(),
       ),
     );
   }

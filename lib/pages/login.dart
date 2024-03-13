@@ -6,6 +6,7 @@ import 'package:flutter_application_2/google_signin_api.dart';
 import 'package:flutter_application_2/main.dart';
 import 'package:flutter_application_2/my_button.dart';
 import 'package:flutter_application_2/my_textfield.dart';
+import 'package:flutter_application_2/pages/TeacherPage.dart';
 import 'package:flutter_application_2/square_tile.dart';
 import 'package:flutter_application_2/pages/signup.dart';
 import 'package:provider/provider.dart';
@@ -18,29 +19,46 @@ class LoginPage extends StatelessWidget {
   final passwordController = TextEditingController();
 
   // sign user in method
-  void signUserIn(BuildContext context) async {
-    try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: emailController.text,
-        password: passwordController.text,
-      );
+  // sign user in method
+void signUserIn(BuildContext context) async {
+  try {
+    String email = emailController.text;
+    String password = passwordController.text;
 
-      // Navigate to the home page after successful login
+    // Check if the email is "kmlcharles@gmail.com"
+    if (email == 'kmlcharles@gmail.com') {
+      // Redirect to a specific page for the user with this email
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (context) => AuthPage(),
+          builder: (context) => TeacherPage(),
         ),
       );
-    } catch (e) {
-      // Handle login errors here
-      print('Error logging in: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error logging in. Please try again.'),
-        ),
-      );
+      return;
     }
+
+    // If not the special email, proceed with regular sign-in logic
+    await FirebaseAuth.instance.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+
+    // Navigate to the home page after successful login
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (context) => AuthPage(),
+      ),
+    );
+  } catch (e) {
+    // Handle login errors here
+    print('Error logging in: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Error logging in. Please try again.'),
+      ),
+    );
   }
+}
+
 
   // navigate to signup page
   void goToSignupPage(BuildContext context) {

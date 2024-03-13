@@ -34,15 +34,15 @@ class _HomePageState extends State<HomePage> {
                 Text(
                   'WELCOME TO',
                   style: TextStyle(
-                    fontSize: 24,
+                    fontSize: 45,
                     fontWeight: FontWeight.bold,
                     color: Colors.blue,
                   ),
                 ),
                 Text(
-                  'Classme',
+                  'ClassMe',
                   style: TextStyle(
-                    fontSize: 32,
+                    fontSize: 42,
                     fontWeight: FontWeight.bold,
                     color: Colors.blue,
                   ),
@@ -51,7 +51,7 @@ class _HomePageState extends State<HomePage> {
                 Text(
                   'Where great things happen!',
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: 20,
                     color: Colors.black54,
                   ),
                 ),

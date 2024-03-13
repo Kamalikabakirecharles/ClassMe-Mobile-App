@@ -1,13 +1,11 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter_application_2/pages/quiz_play.dart';
+import 'package:flutter_application_2/main.dart';
+import 'package:flutter_application_2/pages/add_question.dart';
+import 'package:flutter_application_2/pages/create_quiz.dart';
 import 'package:flutter_application_2/pages/welcome.dart';
 import 'package:flutter_application_2/popup.dart';
-import 'package:flutter_application_2/services/database.dart';
-import 'package:uuid/uuid.dart';
-import 'firebase_options.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_2/ThemeProvider.dart';
 import 'package:flutter_application_2/google_signin_api.dart';
@@ -17,46 +15,14 @@ import 'package:flutter_application_2/pages/about.dart';
 import 'package:flutter_application_2/pages/calculator.dart';
 import 'package:flutter_application_2/pages/gallery.dart';
 import 'package:flutter_application_2/pages/settings.dart';
+import 'package:flutter_application_2/services/database.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:provider/provider.dart';
 import 'package:connectivity/connectivity.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:uuid/uuid.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  await initNotifications();
-  runApp(
-    ChangeNotifierProvider(
-      create: (context) => ThemeProvider(),
-      child: MyWelcomeApp(),
-    ),
-  );
-}
-
-FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-    FlutterLocalNotificationsPlugin();
-
-Future<void> initNotifications() async {
-  final AndroidInitializationSettings initializationSettingsAndroid =
-      AndroidInitializationSettings('classme');
-
-  final InitializationSettings initializationSettings = InitializationSettings(
-    android: initializationSettingsAndroid,
-  );
-
-  await flutterLocalNotificationsPlugin.initialize(
-    initializationSettings,
-    onSelectNotification: (String? payload) async {
-      // Handle notification tap
-    },
-  );
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key});
+class TeacherPage extends StatelessWidget {
+  const TeacherPage({Key? key});
 
   @override
   Widget build(BuildContext context) {
@@ -66,7 +32,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
       theme: themeProvider.currentTheme,
-      home: const MyHomePage(title: 'Home Page'),
+      home: const MyHomePage(title: 'Teacher Home Page'),
     );
   }
 }
@@ -87,64 +53,53 @@ class _MyHomePageState extends State<MyHomePage> {
 
   late Timer refreshTimer;
   bool showStatusIndicators = true;
-
   // late Stream quizStream; // Declare the stream variable as late
   late Stream<QuerySnapshot<Map<String, dynamic>>>
       quizStream; // Specify the correct type
   late DatabaseService databaseService; // Declare the database service
 
   Widget quizList() {
-    return Container(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16.0),
-        child: StreamBuilder(
-          stream: quizStream,
-          builder: (context,
-              AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              // Display a loader while data is being fetched
-              return Center(
-                child: CircularProgressIndicator(),
-              );
-            }
-
-            return snapshot.data == null
-                ? Container()
-                : ListView.builder(
-                    shrinkWrap: true,
-                    physics: ClampingScrollPhysics(),
-                    itemExtent: 180,
-                    itemCount: snapshot.data!.docs.length,
-                    itemBuilder: (context, index) {
-                      return Column(
-                        children: [
-                          Container(
-                            margin: EdgeInsets.only(bottom: 16.0),
-                            child: QuizTile(
-                              noOfQuestions: snapshot.data!.docs.length,
-                              imageUrl: snapshot.data!.docs[index]
-                                  .data()['quizImgUrl'],
-                              title: snapshot.data!.docs[index]
-                                  .data()['quizTitle'],
-                              description:
-                                  snapshot.data!.docs[index].data()['quizDesc'],
-                              id: snapshot.data!.docs[index].id,
-                            ),
+  return Container(
+    child: Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16.0),
+      child: StreamBuilder(
+        stream: quizStream,
+        builder: (context, AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> snapshot) {
+          return snapshot.data == null
+              ? Container()
+              : ListView.builder(
+                  shrinkWrap: true,
+                  physics: ClampingScrollPhysics(),
+                  itemExtent: 180,
+                  itemCount: snapshot.data!.docs.length,
+                  itemBuilder: (context, index) {
+                    return Column(
+                      children: [
+                        Container(
+                          margin: EdgeInsets.only(bottom: 16.0),
+                          child: QuizTile(
+                            noOfQuestions: snapshot.data!.docs.length,
+                            imageUrl: snapshot.data!.docs[index].data()['quizImgUrl'],
+                            title: snapshot.data!.docs[index].data()['quizTitle'],
+                            description: snapshot.data!.docs[index].data()['quizDesc'],
+                            id: snapshot.data!.docs[index].id,
                           ),
-                          Divider(
-                            color: Theme.of(context).primaryColor,
-                            thickness: 2.0,
-                            height: 2,
-                          ),
-                        ],
-                      );
-                    },
-                  );
-          },
-        ),
+                        ),
+                        Divider(
+                          color: Theme.of(context).primaryColor, // Use the color of your theme
+                          thickness: 2.0, // Adjust the thickness as needed
+                          height: 2,// Use 0 to get a full line
+                        ),
+                      ],
+                    );
+                  },
+                );
+        },
       ),
-    );
-  }
+    ),
+  );
+}
+
 
   @override
   void initState() {
@@ -179,6 +134,11 @@ class _MyHomePageState extends State<MyHomePage> {
     // Set up periodic timer for refreshing every 1 minute
     refreshTimer = Timer.periodic(Duration(seconds: 2), (Timer timer) {
       refreshStatus();
+    });
+
+    databaseService.getQuizData().then((value) {
+      quizStream = value;
+      setState(() {});
     });
   }
 
@@ -351,7 +311,7 @@ class _MyHomePageState extends State<MyHomePage> {
       await GoogleSignInApi.logout();
       FirebaseAuth.instance.signOut();
 
-// Navigate to the login page and replace the current screen
+      // Navigate to the login page and replace the current screen
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => MyWelcomeApp()),
@@ -481,6 +441,35 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ),
       ),
+      floatingActionButton: AnimatedContainer(
+        duration: Duration(milliseconds: 500),
+        margin: EdgeInsets.only(right: isFABVisible ? 0 : -56),
+        child: Visibility(
+          visible: isFABVisible,
+          child: FloatingActionButton(
+            child: Icon(
+              Icons.border_color_outlined,
+              color: Colors.white,
+            ),
+            backgroundColor: themeProvider.currentTheme.primaryColor,
+            onPressed: () async {
+              // Check for internet connectivity
+              bool isOnline = await checkInternetConnectivity();
+
+              if (isOnline) {
+                // Device is online, proceed to CreateQuiz page
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => CreateQuiz()),
+                );
+              } else {
+                // Device is offline, show a popup message
+                showPopup(context, 'OPPs', 'You are offline. Cannot create subject.');
+              }
+            },
+          ),
+        ),
+      ),
     );
   }
 }
@@ -518,12 +507,22 @@ class QuizTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
+      onTap: () async {
+        // Check for internet connectivity
+        bool isOnline = await checkInternetConnectivity();
+
+        if (isOnline) {
+          // Device is online, proceed to AddQuestion page
+          Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => QuizPlay(id ?? ""),
-            ));
+              builder: (context) => AddQuestion(id ?? ""),
+            ),
+          );
+        } else {
+          // Device is offline, show a popup message
+          showPopup(context, 'OPPs', 'You are offline. Cannot view quiz details.');
+        }
       },
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 24),
@@ -573,4 +572,9 @@ class QuizTile extends StatelessWidget {
       ),
     );
   }
+  Future<bool> checkInternetConnectivity() async {
+    var connectivityResult = await Connectivity().checkConnectivity();
+    return connectivityResult != ConnectivityResult.none;
+  }
 }
+

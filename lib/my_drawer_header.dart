@@ -80,6 +80,11 @@ Future<void> loadUserInfo() async {
   final savedUserName = prefs.getString('userName');
   final savedUserEmail = prefs.getString('userEmail');
 
+  // Set userName variable
+  setState(() {
+    userName = savedUserName;
+  });
+
   final googleSignIn = GoogleSignIn();
   final googleSignInAccount = await googleSignIn.signInSilently();
 
@@ -201,11 +206,11 @@ Future<void> loadUserInfo() async {
             Column(
               children: [
                 Text(
-                  userName ?? "",
+                  userName ?? "Hello!",
                   style: TextStyle(color: Colors.white, fontSize: 20),
                 ),
                 Text(
-                  userEmail ?? "",
+                  userEmail ?? "Kmlcharles@gmail.com",
                   style: TextStyle(color: Colors.grey[200], fontSize: 14),
                 ),
               ],

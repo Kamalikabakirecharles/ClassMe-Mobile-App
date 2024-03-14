@@ -5,7 +5,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_application_2/pages/quiz_play.dart';
 import 'package:flutter_application_2/pages/welcome.dart';
 import 'package:flutter_application_2/popup.dart';
+import 'package:flutter_application_2/services/QuizDatabaseHelper.dart';
 import 'package:flutter_application_2/services/database.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'firebase_options.dart';
 import 'package:flutter/material.dart';
@@ -28,12 +30,35 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   await initNotifications();
-  runApp(
+  // Copy data from Firebase to SQLite during app initialization
+  await copyDataToSQLite();
+  // Check the user's authentication status and navigate accordingly
+   checkUserAuthenticationStatus();
+}
+
+Future<void> checkUserAuthenticationStatus() async {
+  try {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool isAuthenticated = prefs.getBool('isAuthenticated') ?? false;
+
+    if (isAuthenticated) {
+      runApp(
+    ChangeNotifierProvider(
+      create: (context) => ThemeProvider(),
+      child: MyApp(),
+    ),
+  );
+    } else {
+      runApp(
     ChangeNotifierProvider(
       create: (context) => ThemeProvider(),
       child: MyWelcomeApp(),
     ),
   );
+    }
+  } catch (e) {
+    print('Error checking authentication status: $e');
+  }
 }
 
 FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -41,7 +66,7 @@ FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
 
 Future<void> initNotifications() async {
   final AndroidInitializationSettings initializationSettingsAndroid =
-      AndroidInitializationSettings('classme');
+      const AndroidInitializationSettings('classme');
 
   final InitializationSettings initializationSettings = InitializationSettings(
     android: initializationSettingsAndroid,
@@ -154,6 +179,9 @@ class _MyHomePageState extends State<MyHomePage> {
     // Initialize quizStream with an empty stream
     quizStream = Stream.empty();
 
+    // Show a notification when the page loads
+    showWelcomeNotification();
+
     // Load quiz data into quizStream
     databaseService.getQuizData().then((value) {
       setState(() {
@@ -180,6 +208,29 @@ class _MyHomePageState extends State<MyHomePage> {
     refreshTimer = Timer.periodic(Duration(seconds: 2), (Timer timer) {
       refreshStatus();
     });
+  }
+
+  Future<void> showWelcomeNotification() async {
+    // Define the notification details
+    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+        AndroidNotificationDetails(
+      'quiz_channel', // ID for the notification channel
+      'Quiz Notifications', // Name of the notification channel
+      importance: Importance.max,
+      priority: Priority.high,
+    );
+
+    const NotificationDetails platformChannelSpecifics =
+        NotificationDetails(android: androidPlatformChannelSpecifics);
+
+    // Show the notification
+    await flutterLocalNotificationsPlugin.show(
+      0, // Notification ID
+      'Welcome back!', // Notification title
+      'We have more quiz for you today.', // Notification body
+      platformChannelSpecifics,
+      payload: 'quiz_notification', // Optional payload
+    );
   }
 
   @override
@@ -341,21 +392,25 @@ class _MyHomePageState extends State<MyHomePage> {
         );
         break;
       case "LogOut":
-        logout();
+        logout(context);
         break;
     }
   }
 
-  Future<void> logout() async {
+  Future<void> logout(BuildContext context) async {
     try {
       await GoogleSignInApi.logout();
-      FirebaseAuth.instance.signOut();
+      await FirebaseAuth.instance.signOut();
 
-// Navigate to the login page and replace the current screen
+      // Clear the user authentication status
+      await clearUserAuthenticationStatus();
+
+      // Navigate to the login page and replace the current screen
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => MyWelcomeApp()),
       );
+
       // Show a success message
       showPopup(context, 'Success', 'Successfully Logged Out!');
     } catch (e) {
@@ -363,6 +418,16 @@ class _MyHomePageState extends State<MyHomePage> {
 
       // Show an error message
       showPopup(context, 'Error', 'Failed to log out. Please try again.');
+    }
+  }
+
+// Method to clear the user's authentication status
+  Future<void> clearUserAuthenticationStatus() async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('isAuthenticated', false);
+    } catch (e) {
+      print('Error clearing authentication status: $e');
     }
   }
 

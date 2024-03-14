@@ -9,6 +9,7 @@ class DatabaseService {
     await FirebaseFirestore.instance
         .collection("users")
         .add(userData)
+        // ignore: body_might_complete_normally_catch_error
         .catchError((e) {
       print(e);
     });
@@ -35,6 +36,7 @@ class DatabaseService {
         .doc(quizId)
         .collection("QNA")
         .add(quizData)
+        // ignore: body_might_complete_normally_catch_error
         .catchError((e) {
       print(e);
     });

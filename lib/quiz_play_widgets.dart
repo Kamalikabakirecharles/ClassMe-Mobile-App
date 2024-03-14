@@ -17,6 +17,7 @@ class OptionTile extends StatefulWidget {
 class _OptionTileState extends State<OptionTile> {
   @override
   Widget build(BuildContext context) {
+    // ignore: unused_local_variable
     ThemeData theme = Theme.of(context);
     Color correctColor = Colors.green.withOpacity(0.7);
     Color incorrectColor = Colors.red.withOpacity(0.7);

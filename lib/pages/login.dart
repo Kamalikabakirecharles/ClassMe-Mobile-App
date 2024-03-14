@@ -10,6 +10,7 @@ import 'package:flutter_application_2/pages/TeacherPage.dart';
 import 'package:flutter_application_2/square_tile.dart';
 import 'package:flutter_application_2/pages/signup.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatelessWidget {
   LoginPage({super.key});
@@ -19,46 +20,57 @@ class LoginPage extends StatelessWidget {
   final passwordController = TextEditingController();
 
   // sign user in method
-  // sign user in method
-void signUserIn(BuildContext context) async {
-  try {
-    String email = emailController.text;
-    String password = passwordController.text;
+  void signUserIn(BuildContext context) async {
+    try {
+      String email = emailController.text;
+      String password = passwordController.text;
 
-    // Check if the email is "kmlcharles@gmail.com"
-    if (email == 'kmlcharles@gmail.com') {
-      // Redirect to a specific page for the user with this email
+      // Check if the email is "kmlcharles@gmail.com"
+      if (email == 'kmlcharles@gmail.com') {
+        // Redirect to a specific page for the user with this email
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => TeacherPage(),
+          ),
+        );
+        return;
+      }
+
+      // If not the special email, proceed with regular sign-in logic
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      // After successful login, save the authentication status
+      await saveUserAuthenticationStatus();
+
+      // Navigate to the home page after successful login
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (context) => TeacherPage(),
+          builder: (context) => AuthPage(),
         ),
       );
-      return;
+    } catch (e) {
+      // Handle login errors here
+      print('Error logging in: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error logging in. Please try again.'),
+        ),
+      );
     }
+  }
 
-    // If not the special email, proceed with regular sign-in logic
-    await FirebaseAuth.instance.signInWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
-
-    // Navigate to the home page after successful login
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (context) => AuthPage(),
-      ),
-    );
+  // Method to save the user's authentication status
+Future<void> saveUserAuthenticationStatus() async {
+  try {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isAuthenticated', true);
   } catch (e) {
-    // Handle login errors here
-    print('Error logging in: $e');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Error logging in. Please try again.'),
-      ),
-    );
+    print('Error saving authentication status: $e');
   }
 }
-
 
   // navigate to signup page
   void goToSignupPage(BuildContext context) {

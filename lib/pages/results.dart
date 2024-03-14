@@ -155,7 +155,7 @@ class _ResultsState extends State<Results> {
         NotificationDetails(android: androidPlatformChannelSpecifics);
 
     final userName =
-        widget.userName ?? ''; // Use userName from widget or default to 'User'
+        widget.userName ?? '';
 
     await flutterLocalNotificationsPlugin.show(
       0,

@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_2/models/question_model.dart';
 import 'package:flutter_application_2/pages/results.dart';
+import 'package:flutter_application_2/popup.dart';
 import 'package:flutter_application_2/services/database.dart';
 import 'package:flutter_application_2/quiz_play_widgets.dart';
 import 'package:uuid/uuid.dart';
@@ -29,17 +30,24 @@ class _QuizPlayState extends State<QuizPlay> {
   late QuerySnapshot questionSnaphot;
   late DatabaseService databaseService; // Declare the database service
   late StreamController<List<int>> infoStreamController;
+  late PageController _pageController;
+  int _currentPageIndex = 0;
 
   bool isLoading = true;
+  late List<Map<String, dynamic>> questionList;
 
   @override
   void initState() {
+    _pageController = PageController();
+
     // Initialize the database service with a unique ID
     databaseService = DatabaseService(uid: Uuid().v4());
-    infoStream = Stream<List<int>>.periodic(Duration(milliseconds: 100), (x) {
-      print("this is x $x");
-      return [_correct, _incorrect];
-    });
+
+    // Initialize infoStreamController
+    infoStreamController = StreamController<List<int>>.broadcast();
+
+    // Use infoStreamController.stream instead of creating a new stream
+    infoStream = infoStreamController.stream;
     databaseService.getQuestionData(widget.quizId).then((value) {
       questionSnaphot = value;
       _notAttempted = questionSnaphot.docs.length;
@@ -50,14 +58,6 @@ class _QuizPlayState extends State<QuizPlay> {
       setState(() {});
       print("init don $total ${widget.quizId} ");
     });
-
-    if (infoStream == null) {
-      infoStream = Stream<List<int>>.periodic(Duration(milliseconds: 100), (x) {
-        // print("this is x $x");
-        return [_correct, _incorrect];
-      });
-    }
-
     super.initState();
   }
 
@@ -71,6 +71,7 @@ class _QuizPlayState extends State<QuizPlay> {
       questionModel.question = (data["question"] as String?)!;
 
       // Check if question is not null before processing
+      // ignore: unnecessary_null_comparison
       if (questionModel.question != null) {
         List<String> options = [
           data["option1"],
@@ -96,14 +97,13 @@ class _QuizPlayState extends State<QuizPlay> {
 
   @override
   void dispose() {
-    if (infoStream == null) {
-      infoStreamController = StreamController<List<int>>.broadcast();
-      infoStream = infoStreamController.stream;
-    }
+    // Close the stream controller when disposing
+    infoStreamController.close();
+    _pageController.dispose();
     super.dispose();
   }
 
-  @override
+ @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -114,52 +114,68 @@ class _QuizPlayState extends State<QuizPlay> {
           ? Container(
               child: Center(child: CircularProgressIndicator()),
             )
-          : SingleChildScrollView(
-              child: Container(
-                child: Column(
-                  children: [
-                    InfoHeader(
-                      length: questionSnaphot.docs.length,
-                    ),
-                    SizedBox(
-                      height: 10,
-                    ),
-                    questionSnaphot.docs == null
-                        ? Container(
-                            child: Center(
-                              child: Text("No Data"),
-                            ),
-                          )
-                        : ListView.builder(
-                            itemCount: questionSnaphot.docs.length,
-                            shrinkWrap: true,
-                            physics: ClampingScrollPhysics(),
-                            itemBuilder: (context, index) {
-                              return QuizPlayTile(
-                                questionModel: getQuestionModelFromDatasnapshot(
-                                  questionSnaphot.docs[index],
-                                ),
-                                index: index,
-                              );
-                            },
+          : PageView.builder(
+              controller: _pageController,
+              itemCount: questionSnaphot.docs.length,
+              onPageChanged: (index) {
+                setState(() {
+                  _currentPageIndex = index;
+                });
+              },
+              itemBuilder: (context, index) {
+                return SingleChildScrollView(
+                  child: Container(
+                    child: Column(
+                      children: [
+                        InfoHeader(
+                          length: questionSnaphot.docs.length,
+                          correct: _correct,
+                          incorrect: _incorrect,
+                          notAttempted: _notAttempted,
+                        ),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        QuizPlayTile(
+                          questionModel: getQuestionModelFromDatasnapshot(
+                            questionSnaphot.docs[index],
                           ),
-                  ],
-                ),
-              ),
+                          index: index,
+                        ),
+                        SizedBox(height: 20),
+                      ],
+                    ),
+                  ),
+                );
+              },
             ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.check),
         onPressed: () {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => Results(
-                correct: _correct,
-                incorrect: _incorrect,
-                total: total,
-              ),
-            ),
-          );
+          // Check if it's the last question
+          if (_currentPageIndex < questionSnaphot.docs.length - 1) {
+            // If there are more questions, move to the next question
+            _pageController.nextPage(
+              duration: Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+            );
+          } else {
+            // If it's the last question, show the popup
+            showPopup(context, "End of Quiz", "You've reached the end of the quiz.")
+                .then((value) {
+              // Navigate to the Results page after closing the popup
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => Results(
+                    correct: _correct,
+                    incorrect: _incorrect,
+                    total: total,
+                  ),
+                ),
+              );
+            });
+          }
         },
         backgroundColor: Theme.of(context).primaryColor,
         shape: CircleBorder(),
@@ -170,8 +186,16 @@ class _QuizPlayState extends State<QuizPlay> {
 
 class InfoHeader extends StatefulWidget {
   final int length;
+  final int correct;
+  final int incorrect;
+  final int notAttempted;
 
-  InfoHeader({required this.length});
+  InfoHeader({
+    required this.length,
+    required this.correct,
+    required this.incorrect,
+    required this.notAttempted,
+  });
 
   @override
   _InfoHeaderState createState() => _InfoHeaderState();
@@ -180,38 +204,32 @@ class InfoHeader extends StatefulWidget {
 class _InfoHeaderState extends State<InfoHeader> {
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder(
-        stream: infoStream,
-        builder: (context, snapshot) {
-          return snapshot.hasData
-              ? Container(
-                  height: 40,
-                  margin: EdgeInsets.only(left: 14),
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    shrinkWrap: true,
-                    children: <Widget>[
-                      NoOfQuestionTile(
-                        text: "Total",
-                        number: widget.length,
-                      ),
-                      NoOfQuestionTile(
-                        text: "Correct",
-                        number: _correct,
-                      ),
-                      NoOfQuestionTile(
-                        text: "Incorrect",
-                        number: _incorrect,
-                      ),
-                      NoOfQuestionTile(
-                        text: "NotAttempted",
-                        number: _notAttempted,
-                      ),
-                    ],
-                  ),
-                )
-              : Container();
-        });
+    return Container(
+      height: 40,
+      margin: EdgeInsets.only(left: 14),
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        shrinkWrap: true,
+        children: <Widget>[
+          NoOfQuestionTile(
+            text: "Total",
+            number: widget.length,
+          ),
+          NoOfQuestionTile(
+            text: "Correct",
+            number: widget.correct,
+          ),
+          NoOfQuestionTile(
+            text: "Incorrect",
+            number: widget.incorrect,
+          ),
+          NoOfQuestionTile(
+            text: "NotAttempted",
+            number: widget.notAttempted,
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -234,6 +252,7 @@ class _QuizPlayTileState extends State<QuizPlayTile> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          SizedBox(height: 20), // Add this SizedBox to move the question down
           Container(
             margin: EdgeInsets.symmetric(horizontal: 20),
             child: Text(
@@ -248,23 +267,19 @@ class _QuizPlayTileState extends State<QuizPlayTile> {
           GestureDetector(
             onTap: () {
               if (!widget.questionModel.answered) {
-                if (widget.questionModel.option1 ==
-                    widget.questionModel.correctOption) {
-                  setState(() {
-                    optionSelected = widget.questionModel.option1;
-                    widget.questionModel.answered = true;
-                    _correct = _correct + 1;
-                  });
-                } else {
-                  setState(() {
-                    optionSelected = widget.questionModel.option1;
-                    widget.questionModel.answered = true;
-                    _incorrect = _incorrect + 1;
-                  });
-                }
                 setState(() {
+                  if (widget.questionModel.option1 ==
+                      widget.questionModel.correctOption) {
+                    optionSelected = widget.questionModel.option1;
+                    _correct = _correct + 1;
+                  } else {
+                    optionSelected = widget.questionModel.option1;
+                    _incorrect = _incorrect + 1;
+                  }
+                  widget.questionModel.answered = true;
                   _notAttempted = _notAttempted - 1;
                 });
+                infoStreamController.add([_correct, _incorrect, _notAttempted]);
               }
             },
             child: OptionTile(

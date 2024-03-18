@@ -1,73 +1,123 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
-class QuizDatabaseHelper {
+class DatabaseHelper {
   static Database? _database;
-  static const String dbName = 'quiz.db';
+  static final _databaseName = 'quiz.db';
+  static final _databaseVersion = 1;
+
+  static final tableQuiz = 'quiz';
+  static final tableQuestion = 'question';
+
+  static final columnId = 'id';
+  static final columnTitle = 'title';
+  static final columnDescription = 'description';
+  static final columnImgUrl = 'ImgUrl';
+  static final columnOption1 = 'option1';
+  static final columnOption2 = 'option2';
+  static final columnOption3 = 'option3';
+  static final columnOption4 = 'option4';
+  static final columnQuestion = 'question';
 
   Future<Database> get database async {
     if (_database != null) return _database!;
-
-    // If _database is null, initialize it
-    _database = await initDatabase();
+    _database = await initializeDatabase();
     return _database!;
   }
 
-  Future<Database> initDatabase() async {
-    String path = join(await getDatabasesPath(), dbName);
-    return openDatabase(path, version: 1, onCreate: _createDb);
-  }
-
-  Future<void> _createDb(Database db, int version) async {
-    // Create tables and schema here
-    await db.execute('''
-      CREATE TABLE questions(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        question TEXT,
-        option1 TEXT,
-        option2 TEXT,
-        option3 TEXT,
-        option4 TEXT,
-        correctOption TEXT
-      )
-    ''');
-
-    // Insert quiz questions data here
-    // Loop through your Firebase quiz data and insert into SQLite
-  }
-}
-
-Future<List<Map<String, dynamic>>> getOfflineQuizData() async {
-  // Open SQLite database
-  Database db = await QuizDatabaseHelper().database;
-
-  // Fetch quiz questions from SQLite
-  List<Map<String, dynamic>> questions = await db.query('questions');
-
-  return questions;
-}
-
-Future<void> copyDataToSQLite() async {
-  // Fetch quiz data from Firebase
-  QuerySnapshot<Map<String, dynamic>> quizData =
-      await FirebaseFirestore.instance.collection('quizzes').get();
-
-  // Open SQLite database
-  Database db = await QuizDatabaseHelper().database;
-
-  // Loop through Firebase quiz data and insert into SQLite
-  quizData.docs.forEach((quizDoc) async {
-    await db.insert(
-      'questions',
-      {
-        'question': quizDoc['question'],
-        'option1': quizDoc['option1'],
-        'option2': quizDoc['option2'],
-        'option3': quizDoc['option3'],
-        'option4': quizDoc['option4'],
-        'correctOption': quizDoc['correctOption'],
-      },
+  Future<Database> initializeDatabase() async {
+    String path = join(await getDatabasesPath(), _databaseName);
+    return await openDatabase(
+      path,
+      version: _databaseVersion,
+      onCreate: _onCreate,
     );
-  });
+  }
+
+  Future<void> _onCreate(Database db, int version) async {
+    await db.execute('''
+    CREATE TABLE $tableQuiz (
+      $columnId TEXT PRIMARY KEY,
+      $columnTitle TEXT NOT NULL,
+      $columnDescription TEXT NOT NULL,
+      $columnImgUrl TEXT NOT NULL
+    )
+  ''');
+
+    await db.execute('''
+    CREATE TABLE $tableQuestion (
+      $columnId TEXT PRIMARY KEY,
+      $columnQuestion TEXT NOT NULL,
+      $columnOption1 TEXT NOT NULL,
+      $columnOption2 TEXT NOT NULL,
+      $columnOption3 TEXT NOT NULL,
+      $columnOption4 TEXT NOT NULL,
+      FOREIGN KEY ($columnId) REFERENCES $tableQuiz($columnId) ON DELETE CASCADE
+    )
+  ''');
+  }
+
+  Future<int> insertQuiz(Map<String, dynamic> quizData) async {
+    Database db = await database;
+    return await db.insert(tableQuiz, quizData);
+  }
+
+  Future<int> insertQuestion(Map<String, dynamic> questionData) async {
+    Database db = await database;
+    return await db.insert(tableQuestion, questionData);
+  }
+
+  Future<int> updateQuiz(
+      String quizId, Map<String, dynamic> updatedData) async {
+    Database db = await database;
+    return await db.update(
+      tableQuiz,
+      updatedData,
+      where: '$columnId = ?',
+      whereArgs: [quizId],
+    );
+  }
+
+  Future<int> updateQuestion(String questionId,
+      Map<String, dynamic> updatedData, String quizId) async {
+    Database db = await database;
+    // Update question with quizId
+    return await db.update(
+      tableQuestion,
+      updatedData,
+      where: '$columnId = ? AND quizId = ?',
+      whereArgs: [questionId, quizId],
+    );
+  }
+
+  Future<int> deleteQuiz(String quizId) async {
+    Database db = await database;
+    return await db.delete(
+      tableQuiz,
+      where: '$columnId = ?',
+      whereArgs: [quizId],
+    );
+  }
+
+  Future<int> deleteQuestion(String questionId, String quizId) async {
+    Database db = await database;
+    // Delete question with quizId
+    return await db.delete(
+      tableQuestion,
+      where: '$columnId = ? AND quizId = ?',
+      whereArgs: [questionId, quizId],
+    );
+  }
+
+  // In DatabaseHelper class
+  Future<int> insertOrUpdateQuiz(Map<String, dynamic> quizData) async {
+    Database db = await database;
+    return await db.insert(tableQuiz, quizData,
+        conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  Future<List<Map<String, dynamic>>> getQuizData() async {
+    Database db = await database;
+    return await db.query(tableQuiz);
+  }
 }

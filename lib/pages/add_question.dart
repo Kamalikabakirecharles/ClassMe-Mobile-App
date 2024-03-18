@@ -9,7 +9,9 @@ import 'package:uuid/uuid.dart';
 
 class AddQuestion extends StatefulWidget {
   final String quizId;
-  AddQuestion(this.quizId);
+  final DatabaseService databaseService;
+
+  AddQuestion({required this.quizId, required this.databaseService});
 
   @override
   _AddQuestionState createState() => _AddQuestionState();
@@ -22,7 +24,7 @@ class _AddQuestionState extends State<AddQuestion> {
   bool isLoading = false;
   String question = "", option1 = "", option2 = "", option3 = "", option4 = "";
 
-  uploadQuizData() {
+  void uploadQuizData() {
   if (_formKey.currentState!.validate()) {
     setState(() {
       isLoading = true;
@@ -36,29 +38,22 @@ class _AddQuestionState extends State<AddQuestion> {
       "option4": option4
     };
 
-    print("${widget.quizId}");
-    databaseService.addQuestionData(questionMap, widget.quizId).then((value) {
-      question = "";
-      option1 = "";
-      option2 = "";
-      option3 = "";
-      option4 = "";
+    widget.databaseService.addQuestionData(questionMap, widget.quizId).then((value) {
       setState(() {
         isLoading = false;
       });
 
-      // Show the popup with success message
       showPopup(context, 'Success', 'Question added successfully!');
+
+      // You may choose to navigate back to the TeacherPage or stay on this page
     }).catchError((e) {
       print(e);
 
-      // Show the popup with error message
       showPopup(context, 'Error', 'Failed to add question. Please try again.');
     });
-  } else {
-    print("error is happening ");
   }
 }
+
 
 
   @override

@@ -8,7 +8,6 @@ import 'package:provider/provider.dart';
 import 'package:random_string/random_string.dart';
 import 'package:uuid/uuid.dart';
 
-
 void main() {
   runApp(const CreateQuiz());
   // Create an instance of the Uuid class
@@ -24,14 +23,13 @@ class CreateQuiz extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     final themeProvider = Provider.of<ThemeProvider>(context);
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
       theme: themeProvider.currentTheme,
-      home: const MyHomePage(title: 'Add Subject'), 
+      home: const MyHomePage(title: 'Add Subject'),
     );
   }
 }
@@ -47,14 +45,13 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int myIndex = 0;
-
+  String? imageUrlPreview; // Variable to store the URL pasted by the user.
   DatabaseService databaseService = DatabaseService(uid: Uuid().v4());
 
   final _formKey = GlobalKey<FormState>();
   late String quizImgUrl, quizTitle, quizDesc;
   bool isLoading = false;
   late String quizId;
-
 
   Widget menuItem(IconData icon, String title) {
     return Material(
@@ -80,7 +77,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  createQuiz() {
+ void createQuiz() {
   quizId = randomAlphaNumeric(16);
   if (_formKey.currentState!.validate()) {
     setState(() {
@@ -98,22 +95,36 @@ class _MyHomePageState extends State<MyHomePage> {
         isLoading = false;
       });
 
-      // Show the popup with success message
       showPopup(context, 'Success', 'Subject created successfully!');
 
-      // Navigate to the AddQuestion page
-      Navigator.pushReplacement( 
+      // Navigate to the AddQuestion page with the quiz ID
+      Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => AddQuestion(quizId)),
+        MaterialPageRoute(
+          builder: (context) => AddQuestion(
+            quizId: quizId, // Pass the quiz ID to AddQuestion page
+            databaseService: databaseService,
+          ),
+        ),
       );
     }).catchError((error) {
       print(error);
 
-      // Show the popup with error message
-      showPopup(context, 'Error', 'Failed to create subject. Please try again.');
+      // Navigate to the AddQuestion page with the quiz ID even if there's an error
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => AddQuestion(
+            quizId: quizId, // Pass the quiz ID to AddQuestion page
+            databaseService: databaseService,
+          ),
+        ),
+      );
     });
   }
 }
+
+
 
 
   @override
@@ -144,27 +155,60 @@ class _MyHomePageState extends State<MyHomePage> {
           padding: EdgeInsets.symmetric(horizontal: 24),
           child: Column(
             children: [
+              Text(
+                "Preview",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+              SizedBox(height: 7),
+              // Image preview container with border
+              if (imageUrlPreview != null) // Display only if URL is provided
+                Container(
+                  width: double.infinity,
+                  height: 130,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                        color: themeProvider.currentTheme
+                            .primaryColor), // Add border with theme color
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Image.network(
+                      imageUrlPreview!, // Display the image preview
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+              SizedBox(height: 10), // Add some spacing
+
+              // TextFormField for entering image URL
               TextFormField(
                 validator: (val) =>
                     val!.isEmpty ? "Enter Subject Image Url" : null,
                 decoration: InputDecoration(
                   hintText: "Subject Image Url (Optional)",
                   hintStyle: TextStyle(color: Colors.grey),
+                  
                 ),
                 onChanged: (val) {
                   setState(() {
-                    quizImgUrl = val;
+                    imageUrlPreview =
+                        val; // Update the URL preview when user types
+                    quizImgUrl = val; // Store the URL in quizImgUrl variable
                   });
                 },
               ),
-              SizedBox(
-                height: 5,
-              ),
+              SizedBox(height: 5),
               TextFormField(
                 validator: (val) => val!.isEmpty ? "Enter Subject Title" : null,
                 decoration: InputDecoration(
                   hintText: "Subject Title",
                   hintStyle: TextStyle(color: Colors.grey),
+                  
                 ),
                 onChanged: (val) {
                   setState(() {
@@ -172,9 +216,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   });
                 },
               ),
-              SizedBox(
-                height: 5,
-              ),
+              SizedBox(height: 5),
               TextFormField(
                 validator: (val) =>
                     val!.isEmpty ? "Enter Subject Description" : null,
@@ -211,9 +253,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 ),
               ),
-              SizedBox(
-                height: 60,
-              ),
+              SizedBox(height: 60),
             ],
           ),
         ),
@@ -221,4 +261,3 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
-

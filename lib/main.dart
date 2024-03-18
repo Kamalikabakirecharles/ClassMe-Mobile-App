@@ -2,10 +2,10 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_application_2/pages/Maps.dart';
 import 'package:flutter_application_2/pages/quiz_play.dart';
 import 'package:flutter_application_2/pages/welcome.dart';
 import 'package:flutter_application_2/popup.dart';
-import 'package:flutter_application_2/services/QuizDatabaseHelper.dart';
 import 'package:flutter_application_2/services/database.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
@@ -30,10 +30,8 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   await initNotifications();
-  // Copy data from Firebase to SQLite during app initialization
-  await copyDataToSQLite();
   // Check the user's authentication status and navigate accordingly
-   checkUserAuthenticationStatus();
+  checkUserAuthenticationStatus();
 }
 
 Future<void> checkUserAuthenticationStatus() async {
@@ -43,18 +41,18 @@ Future<void> checkUserAuthenticationStatus() async {
 
     if (isAuthenticated) {
       runApp(
-    ChangeNotifierProvider(
-      create: (context) => ThemeProvider(),
-      child: MyApp(),
-    ),
-  );
+        ChangeNotifierProvider(
+          create: (context) => ThemeProvider(),
+          child: MyApp(),
+        ),
+      );
     } else {
       runApp(
-    ChangeNotifierProvider(
-      create: (context) => ThemeProvider(),
-      child: MyWelcomeApp(),
-    ),
-  );
+        ChangeNotifierProvider(
+          create: (context) => ThemeProvider(),
+          child: MyWelcomeApp(),
+        ),
+      );
     }
   } catch (e) {
     print('Error checking authentication status: $e');
@@ -321,6 +319,7 @@ class _MyHomePageState extends State<MyHomePage> {
           menuItem(Icons.account_circle, "About"),
           menuItem(Icons.contact_phone_rounded, "Contact"),
           menuItem(Icons.image_rounded, "Gallery"),
+          menuItem(Icons.map_outlined , "Map"),
           SizedBox(height: 200),
           menuItem(Icons.settings_applications_sharp, "Settings"),
           menuItem(Icons.login, "LogOut"),
@@ -383,6 +382,12 @@ class _MyHomePageState extends State<MyHomePage> {
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => PickImage()),
+        );
+        break;
+        case "Map":
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => MapPage()),
         );
         break;
       case "Settings":
@@ -601,6 +606,24 @@ class QuizTile extends StatelessWidget {
                 imageUrl ?? "", // Use a default value if imageUrl is null
                 fit: BoxFit.cover,
                 width: MediaQuery.of(context).size.width,
+              ),
+              Positioned(
+                bottom: 8, // Adjust the position as needed
+                right: 8, // Adjust the position as needed
+                child: Container(
+                  padding: EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.8),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    'Start Quiz',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
               ),
               Container(
                 color: Colors.black26,

@@ -1,10 +1,8 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_application_2/main.dart';
-import 'package:flutter_application_2/pages/add_question.dart';
+import 'package:flutter_application_2/pages/ModifyQuiz.dart';
 import 'package:flutter_application_2/pages/create_quiz.dart';
-import 'package:flutter_application_2/pages/update_delete_quiz.dart';
 import 'package:flutter_application_2/pages/welcome.dart';
 import 'package:flutter_application_2/popup.dart';
 import 'package:flutter/material.dart';
@@ -56,6 +54,7 @@ class _MyHomePageState extends State<MyHomePage> {
   late Timer refreshTimer;
   bool showStatusIndicators = true;
   late Stream<QuerySnapshot<Map<String, dynamic>>> quizStream;
+
   late DatabaseService databaseService;
 
   Widget quizList() {
@@ -371,77 +370,80 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
       floatingActionButton: Column(
-  mainAxisAlignment: MainAxisAlignment.end,
-  crossAxisAlignment: CrossAxisAlignment.end,
-  children: [
-    Visibility(
-      visible: isFABExpanded,
-      child: FloatingActionButton.extended(
-        onPressed: () async {
-          // Add functionality for the first FloatingActionButton
-          // Check for internet connectivity
-          bool isOnline = await checkInternetConnectivity();
+        mainAxisAlignment: MainAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Visibility(
+            visible: isFABExpanded,
+            child: FloatingActionButton.extended(
+              onPressed: () async {
+                // Add functionality for the first FloatingActionButton
 
-          if (isOnline) {
-            // Device is online, proceed to CreateQuiz page
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => CreateQuiz()),
-            );
-          } else {
-            // Device is offline, show a popup message
-            showPopup(
-              context,
-              'OPPs',
-              'You are offline. Cannot create subject.',
-            );
-          }
-        },
-        icon: Icon(
-          Icons.border_color_outlined,
-          color: Colors.white,
-        ),
-        label: Text(
-          'Add Question',
-          style: TextStyle(color: Colors.white),
-        ), // Add text label here
-        backgroundColor: Theme.of(context).primaryColor,
-      ),
-    ),
-    SizedBox(height: 16),
-    Visibility(
-      visible: isFABExpanded,
-      child: FloatingActionButton.extended(
-        onPressed: () {
-          // Add functionality for the second FloatingActionButton
-        },
-        icon: Icon(
-          Icons.edit_document,
-          color: Colors.white,
-        ),
-        label: Text(
-          'Edit Quiz',
-          style: TextStyle(color: Colors.white),
-        ), // Add text label here
-        backgroundColor: Theme.of(context).primaryColor,
-      ),
-    ),
-    SizedBox(height: 16),
-    FloatingActionButton(
-      onPressed: () {
-        setState(() {
-          isFABExpanded = !isFABExpanded;
-        });
-      },
-      child: Icon(
-        isFABExpanded ? Icons.close : Icons.add,
-        color: Colors.white,
-      ),
-      backgroundColor: Theme.of(context).primaryColor,
-    ),
-  ],
-),
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => CreateQuiz()),
+                );
+              },
+              icon: Icon(
+                Icons.border_color_outlined,
+                color: Colors.white,
+              ),
+              label: Text(
+                'Add Question',
+                style: TextStyle(color: Colors.white),
+              ), // Add text label here
+              backgroundColor: Theme.of(context).primaryColor,
+            ),
+          ),
+          SizedBox(height: 16),
+          Visibility(
+            visible: isFABExpanded,
+            child: FloatingActionButton.extended(
+              onPressed: () async {
+                // Add functionality for the second FloatingActionButton
+                bool isOnline = await checkInternetConnectivity();
 
+                if (isOnline) {
+                  // Device is online, proceed to CreateQuiz page
+                  // Navigator.push(
+                  //   context,
+                  //   MaterialPageRoute(builder: (context) => ModifyQuizPage()),
+                  // );
+                } else {
+                  // Device is offline, show a popup message
+                  showPopup(
+                    context,
+                    'OPPs',
+                    'You are offline. Cannot Edit subject.',
+                  );
+                }
+              },
+              icon: Icon(
+                Icons.edit_document,
+                color: Colors.white,
+              ),
+              label: Text(
+                'Edit Quiz',
+                style: TextStyle(color: Colors.white),
+              ), // Add text label here
+              backgroundColor: Theme.of(context).primaryColor,
+            ),
+          ),
+          SizedBox(height: 16),
+          FloatingActionButton(
+            onPressed: () {
+              setState(() {
+                isFABExpanded = !isFABExpanded;
+              });
+            },
+            child: Icon(
+              isFABExpanded ? Icons.close : Icons.add,
+              color: Colors.white,
+            ),
+            backgroundColor: Theme.of(context).primaryColor,
+          ),
+        ],
+      ),
       drawer: Drawer(
         child: SingleChildScrollView(
           child: Container(
@@ -492,22 +494,15 @@ class QuizTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () async {
-        // Check for internet connectivity
-        bool isOnline = await checkInternetConnectivity();
-
-        if (isOnline) {
-          // Device is online, proceed to AddQuestion page
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => AddQuestion(id ?? ""),
+        // Device is online, proceed to AddQuestion page
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ModifyQuizPage(
+              quizId: '$id',
             ),
-          );
-        } else {
-          // Device is offline, show a popup message
-          showPopup(
-              context, 'OPPs', 'You are offline. Cannot view quiz details.');
-        }
+          ),
+        );
       },
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 24),
@@ -517,7 +512,8 @@ class QuizTile extends StatelessWidget {
           child: Stack(
             children: [
               Image.network(
-                imageUrl ?? "", // Use a default value if imageUrl is null
+                imageUrl ??
+                    "lib/images/photo-1606.png", // Use a default value if imageUrl is null
                 fit: BoxFit.cover,
                 width: MediaQuery.of(context).size.width,
               ),
@@ -556,10 +552,5 @@ class QuizTile extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Future<bool> checkInternetConnectivity() async {
-    var connectivityResult = await Connectivity().checkConnectivity();
-    return connectivityResult != ConnectivityResult.none;
   }
 }

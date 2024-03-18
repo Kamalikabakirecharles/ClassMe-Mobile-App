@@ -1,4 +1,4 @@
-name: flutter_application_2
+name: ClassMe
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -92,6 +92,7 @@ flutter:
     - lib/json/old_town_walk.json
     - lib/json/Animation_Result - 1710280667277.json
     - lib/json/Animation_Win - 1710279144207.json
+    - lib/json/Empty - 1710.json
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

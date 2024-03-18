@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_application_2/ThemeProvider.dart';
-import 'package:flutter_application_2/pages/TeacherPage.dart';
-import 'package:flutter_application_2/popup.dart';
-import 'package:flutter_application_2/services/database.dart';
+import 'package:ClassMe/ThemeProvider.dart';
+import 'package:ClassMe/pages/TeacherPage.dart';
+import 'package:ClassMe/popup.dart';
+import 'package:ClassMe/services/database.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 

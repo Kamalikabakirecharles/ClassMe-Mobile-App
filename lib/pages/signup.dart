@@ -1,13 +1,13 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_2/ThemeProvider.dart';
-import 'package:flutter_application_2/google_signin_api.dart';
-import 'package:flutter_application_2/main.dart';
-import 'package:flutter_application_2/my_button.dart';
-import 'package:flutter_application_2/my_textfield.dart';
-import 'package:flutter_application_2/pages/login.dart';
-import 'package:flutter_application_2/popup.dart';
-import 'package:flutter_application_2/square_tile.dart';
+import 'package:ClassMe/ThemeProvider.dart';
+import 'package:ClassMe/google_signin_api.dart';
+import 'package:ClassMe/main.dart';
+import 'package:ClassMe/my_button.dart';
+import 'package:ClassMe/my_textfield.dart';
+import 'package:ClassMe/pages/login.dart';
+import 'package:ClassMe/popup.dart';
+import 'package:ClassMe/square_tile.dart';
 import 'package:provider/provider.dart';
 
 class SignupPage extends StatelessWidget {

@@ -1,14 +1,14 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_2/ThemeProvider.dart';
-import 'package:flutter_application_2/auth_page.dart';
-import 'package:flutter_application_2/google_signin_api.dart';
-import 'package:flutter_application_2/main.dart';
-import 'package:flutter_application_2/my_button.dart';
-import 'package:flutter_application_2/my_textfield.dart';
-import 'package:flutter_application_2/pages/TeacherPage.dart';
-import 'package:flutter_application_2/square_tile.dart';
-import 'package:flutter_application_2/pages/signup.dart';
+import 'package:ClassMe/ThemeProvider.dart';
+import 'package:ClassMe/auth_page.dart';
+import 'package:ClassMe/google_signin_api.dart';
+import 'package:ClassMe/main.dart';
+import 'package:ClassMe/my_button.dart';
+import 'package:ClassMe/my_textfield.dart';
+import 'package:ClassMe/pages/TeacherPage.dart';
+import 'package:ClassMe/square_tile.dart';
+import 'package:ClassMe/pages/signup.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

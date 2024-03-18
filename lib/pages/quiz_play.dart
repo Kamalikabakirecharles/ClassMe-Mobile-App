@@ -2,11 +2,12 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_2/models/question_model.dart';
-import 'package:flutter_application_2/pages/results.dart';
-import 'package:flutter_application_2/popup.dart';
-import 'package:flutter_application_2/services/database.dart';
-import 'package:flutter_application_2/quiz_play_widgets.dart';
+import 'package:ClassMe/models/question_model.dart';
+import 'package:ClassMe/pages/results.dart';
+import 'package:ClassMe/popup.dart';
+import 'package:ClassMe/services/database.dart';
+import 'package:ClassMe/quiz_play_widgets.dart';
+import 'package:lottie/lottie.dart';
 import 'package:uuid/uuid.dart';
 
 class QuizPlay extends StatefulWidget {
@@ -104,84 +105,111 @@ class _QuizPlayState extends State<QuizPlay> {
   }
 
  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).primaryColor,
-        iconTheme: IconThemeData(color: Colors.white),
-      ),
-      body: isLoading
-          ? Container(
-              child: Center(child: CircularProgressIndicator()),
-            )
-          : PageView.builder(
-              controller: _pageController,
-              itemCount: questionSnaphot.docs.length,
-              onPageChanged: (index) {
-                setState(() {
-                  _currentPageIndex = index;
-                });
-              },
-              itemBuilder: (context, index) {
-                return SingleChildScrollView(
-                  child: Container(
-                    child: Column(
-                      children: [
-                        InfoHeader(
-                          length: questionSnaphot.docs.length,
-                          correct: _correct,
-                          incorrect: _incorrect,
-                          notAttempted: _notAttempted,
-                        ),
-                        SizedBox(
-                          height: 10,
-                        ),
-                        QuizPlayTile(
-                          questionModel: getQuestionModelFromDatasnapshot(
-                            questionSnaphot.docs[index],
-                          ),
-                          index: index,
-                        ),
-                        SizedBox(height: 20),
-                      ],
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+       title: Text(
+          "Quizz",
+          style: TextStyle(color: Colors.white),
+        ),
+      backgroundColor: Theme.of(context).primaryColor,
+      iconTheme: IconThemeData(color: Colors.white),
+    ),
+    body: isLoading
+        ? Container(
+            child: Center(child: CircularProgressIndicator()),
+          )
+        : questionSnaphot.docs.isEmpty
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'No questions available.',
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     ),
-                  ),
-                );
-              },
-            ),
-      floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.check),
-        onPressed: () {
-          // Check if it's the last question
-          if (_currentPageIndex < questionSnaphot.docs.length - 1) {
-            // If there are more questions, move to the next question
-            _pageController.nextPage(
-              duration: Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-            );
-          } else {
-            // If it's the last question, show the popup
-            showPopup(context, "End of Quiz", "You've reached the end of the quiz.")
-                .then((value) {
-              // Navigate to the Results page after closing the popup
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => Results(
-                    correct: _correct,
-                    incorrect: _incorrect,
-                    total: total,
-                  ),
+                    Lottie.asset(
+                      'lib/json/Empty - 1710.json',
+                      width: MediaQuery.of(context).size.width * 0.8,
+                      height: MediaQuery.of(context).size.height * 0.8,
+                      repeat: true,
+                      
+                    ),
+                    SizedBox(height: 20),
+                    
+                  ],
                 ),
-              );
-            });
-          }
-        },
-        backgroundColor: Theme.of(context).primaryColor,
-        shape: CircleBorder(),
-      ),
-    );
-  }
+              )
+            : PageView.builder(
+                controller: _pageController,
+                itemCount: questionSnaphot.docs.length,
+                onPageChanged: (index) {
+                  setState(() {
+                    _currentPageIndex = index;
+                  });
+                },
+                itemBuilder: (context, index) {
+                  return SingleChildScrollView(
+                    child: Container(
+                      child: Column(
+                        children: [
+                          InfoHeader(
+                            length: questionSnaphot.docs.length,
+                            correct: _correct,
+                            incorrect: _incorrect,
+                            notAttempted: _notAttempted,
+                          ),
+                          SizedBox(
+                            height: 10,
+                          ),
+                          QuizPlayTile(
+                            questionModel:
+                                getQuestionModelFromDatasnapshot(
+                              questionSnaphot.docs[index],
+                            ),
+                            index: index,
+                          ),
+                          SizedBox(height: 20),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+    floatingActionButton: FloatingActionButton(
+      child: Icon(Icons.check),
+      onPressed: () {
+        // Check if it's the last question
+        if (_currentPageIndex < questionSnaphot.docs.length - 1) {
+          // If there are more questions, move to the next question
+          _pageController.nextPage(
+            duration: Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
+        } else {
+          // If it's the last question, show the popup
+          showPopup(context, "End of Quiz", "You've reached the end of the quiz.")
+              .then((value) {
+            // Navigate to the Results page after closing the popup
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => Results(
+                  correct: _correct,
+                  incorrect: _incorrect,
+                  total: total,
+                ),
+              ),
+            );
+          });
+        }
+      },
+      backgroundColor: Theme.of(context).primaryColor,
+      shape: CircleBorder(),
+    ),
+  );
+}
+
 }
 
 class InfoHeader extends StatefulWidget {

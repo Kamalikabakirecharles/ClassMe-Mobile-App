@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_application_2/pages/TeacherPage.dart';
-import 'package:flutter_application_2/services/database.dart';
+import 'package:ClassMe/pages/TeacherPage.dart';
+import 'package:ClassMe/pages/add_question.dart';
+import 'package:ClassMe/services/database.dart';
 
 class ModifyQuizPage extends StatefulWidget {
   final String quizId;
@@ -193,38 +194,59 @@ class _ModifyQuizPageState extends State<ModifyQuizPage> {
           ),
           SizedBox(height: 16),
           Align(
-            alignment: Alignment.center,
-            child: ElevatedButton.icon(
-              onPressed: () {
-                // Show a dialog to confirm deleting the entire quiz
-                showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: Text('Delete Quiz'),
-                    content: Text('Are you sure you want to delete this quiz?'),
-                    actions: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        child: Text('Cancel'),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          // Delete the entire quiz
-                          databaseService.deleteQuiz(widget.quizId);
-                          Navigator.pop(context);
-                        },
-                        child: Text('Delete'),
-                      ),
-                    ],
-                  ),
-                );
-              },
-              icon: Icon(Icons.delete),
-              label: Text('Delete Quiz'),
+  alignment: Alignment.center,
+  child: Column(
+    children: [
+      ElevatedButton.icon(
+        onPressed: () {
+          // Navigate to the AddQuestion page with the quiz ID
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AddQuestion(
+                quizId: widget.quizId, // Pass the quiz ID to AddQuestion page
+                databaseService: databaseService,
+              ),
             ),
-          ),
+          );
+        },
+        icon: Icon(Icons.add),
+        label: Text('Add Question'),
+      ),
+      ElevatedButton.icon(
+        onPressed: () {
+          // Show a dialog to confirm deleting the entire quiz
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Text('Delete Quiz'),
+              content: Text('Are you sure you want to delete this quiz?'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    // Delete the entire quiz
+                    databaseService.deleteQuiz(widget.quizId);
+                    Navigator.pop(context);
+                  },
+                  child: Text('Delete'),
+                ),
+              ],
+            ),
+          );
+        },
+        icon: Icon(Icons.delete),
+        label: Text('Delete Quiz'),
+      ),
+    ],
+  ),
+),
+
         ],
       ),
     );

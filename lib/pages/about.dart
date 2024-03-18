@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_2/ThemeProvider.dart';
-import 'package:flutter_application_2/main.dart';
-import 'package:flutter_application_2/my_drawer_header.dart';
-import 'package:flutter_application_2/pages/settings.dart';
+import 'package:ClassMe/ThemeProvider.dart';
+import 'package:ClassMe/main.dart';
+import 'package:ClassMe/my_drawer_header.dart';
+import 'package:ClassMe/pages/settings.dart';
 import 'package:provider/provider.dart';
 import 'calculator.dart';
 

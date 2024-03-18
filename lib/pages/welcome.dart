@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_2/pages/login.dart';
-import 'package:flutter_application_2/pages/signup.dart';
+import 'package:ClassMe/pages/login.dart';
+import 'package:ClassMe/pages/signup.dart';
 import 'package:lottie/lottie.dart';
 
 class MyWelcomeApp extends StatelessWidget {

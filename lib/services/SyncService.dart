@@ -1,4 +1,4 @@
-import 'package:flutter_application_2/services/database.dart';
+import 'package:ClassMe/services/database.dart';
 
 class SyncService {
   final DatabaseService databaseService;

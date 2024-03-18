@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_application_2/services/QuizDatabaseHelper.dart';
+import 'package:ClassMe/services/QuizDatabaseHelper.dart';
 
 class DatabaseService {
   final String uid;

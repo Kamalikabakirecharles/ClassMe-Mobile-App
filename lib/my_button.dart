@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_2/ThemeProvider.dart';
+import 'package:ClassMe/ThemeProvider.dart';
 import 'package:provider/provider.dart';
 
 class MyButton extends StatelessWidget {

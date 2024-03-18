@@ -7,7 +7,7 @@
 
 
     <application
-        android:label="flutter_application_2"
+        android:label="ClassMe"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

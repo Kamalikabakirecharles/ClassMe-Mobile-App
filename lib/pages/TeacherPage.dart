@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_application_2/main.dart';
 import 'package:flutter_application_2/pages/add_question.dart';
 import 'package:flutter_application_2/pages/create_quiz.dart';
+import 'package:flutter_application_2/pages/update_delete_quiz.dart';
 import 'package:flutter_application_2/pages/welcome.dart';
 import 'package:flutter_application_2/popup.dart';
 import 'package:flutter/material.dart';
@@ -50,66 +51,65 @@ class _MyHomePageState extends State<MyHomePage> {
   int myIndex = 0;
   bool isOnline = false;
   bool isBluetoothEnabled = false;
+  bool isFABExpanded = false;
 
   late Timer refreshTimer;
   bool showStatusIndicators = true;
-  // late Stream quizStream; // Declare the stream variable as late
-  late Stream<QuerySnapshot<Map<String, dynamic>>>
-      quizStream; // Specify the correct type
-  late DatabaseService databaseService; // Declare the database service
+  late Stream<QuerySnapshot<Map<String, dynamic>>> quizStream;
+  late DatabaseService databaseService;
 
   Widget quizList() {
-  return Container(
-    child: Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16.0),
-      child: StreamBuilder(
-        stream: quizStream,
-        builder: (context, AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> snapshot) {
-          return snapshot.data == null
-              ? Container()
-              : ListView.builder(
-                  shrinkWrap: true,
-                  physics: ClampingScrollPhysics(),
-                  itemExtent: 180,
-                  itemCount: snapshot.data!.docs.length,
-                  itemBuilder: (context, index) {
-                    return Column(
-                      children: [
-                        Container(
-                          margin: EdgeInsets.only(bottom: 16.0),
-                          child: QuizTile(
-                            noOfQuestions: snapshot.data!.docs.length,
-                            imageUrl: snapshot.data!.docs[index].data()['quizImgUrl'],
-                            title: snapshot.data!.docs[index].data()['quizTitle'],
-                            description: snapshot.data!.docs[index].data()['quizDesc'],
-                            id: snapshot.data!.docs[index].id,
+    return Container(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16.0),
+        child: StreamBuilder(
+          stream: quizStream,
+          builder: (context,
+              AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> snapshot) {
+            return snapshot.data == null
+                ? Container()
+                : ListView.builder(
+                    shrinkWrap: true,
+                    physics: ClampingScrollPhysics(),
+                    itemExtent: 180,
+                    itemCount: snapshot.data!.docs.length,
+                    itemBuilder: (context, index) {
+                      return Column(
+                        children: [
+                          Container(
+                            margin: EdgeInsets.only(bottom: 16.0),
+                            child: QuizTile(
+                              noOfQuestions: snapshot.data!.docs.length,
+                              imageUrl: snapshot.data!.docs[index]
+                                  .data()['quizImgUrl'],
+                              title: snapshot.data!.docs[index]
+                                  .data()['quizTitle'],
+                              description:
+                                  snapshot.data!.docs[index].data()['quizDesc'],
+                              id: snapshot.data!.docs[index].id,
+                            ),
                           ),
-                        ),
-                        Divider(
-                          color: Theme.of(context).primaryColor, // Use the color of your theme
-                          thickness: 2.0, // Adjust the thickness as needed
-                          height: 2,// Use 0 to get a full line
-                        ),
-                      ],
-                    );
-                  },
-                );
-        },
+                          Divider(
+                            color: Theme.of(context)
+                                .primaryColor, // Use the color of your theme
+                            thickness: 2.0, // Adjust the thickness as needed
+                            height: 2, // Use 0 to get a full line
+                          ),
+                        ],
+                      );
+                    },
+                  );
+          },
+        ),
       ),
-    ),
-  );
-}
-
+    );
+  }
 
   @override
   void initState() {
-    // Initialize the database service with a unique ID
     databaseService = DatabaseService(uid: Uuid().v4());
-
-    // Initialize quizStream with an empty stream
     quizStream = Stream.empty();
 
-    // Load quiz data into quizStream
     databaseService.getQuizData().then((value) {
       setState(() {
         quizStream = value;
@@ -117,21 +117,18 @@ class _MyHomePageState extends State<MyHomePage> {
     });
     super.initState();
 
-    // Check for internet connectivity
     checkInternetConnectivity().then((result) {
       setState(() {
         isOnline = result;
       });
     });
 
-    // Check for Bluetooth status
     checkBluetoothStatus().then((value) {
       setState(() {
         isBluetoothEnabled = value;
       });
     });
 
-    // Set up periodic timer for refreshing every 1 minute
     refreshTimer = Timer.periodic(Duration(seconds: 2), (Timer timer) {
       refreshStatus();
     });
@@ -144,13 +141,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   void dispose() {
-    // Cancel the timer when the widget is disposed
     refreshTimer.cancel();
     super.dispose();
   }
 
   void refreshStatus() {
-    // Check and update the status of internet connectivity and Bluetooth
     checkInternetConnectivity().then((result) {
       setState(() {
         isOnline = result;
@@ -172,50 +167,18 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<bool> checkBluetoothStatus() async {
     try {
       FlutterBlue flutterBlue = FlutterBlue.instance;
-
-      // Create a Completer to handle the async operation
       Completer<bool> completer = Completer<bool>();
-
-      // Initialize the subscription variable
       late StreamSubscription<BluetoothState> subscription;
 
-      // Listen to the first event emitted by the Bluetooth state stream
       subscription = flutterBlue.state.listen((BluetoothState bluetoothState) {
-        // Check the Bluetooth state and complete the Future
         completer.complete(bluetoothState == BluetoothState.on);
-
-        // Cancel the subscription after the first event
         subscription.cancel();
       });
 
-      return await completer.future; // Wait for the Future to complete
+      return await completer.future;
     } catch (e, stackTrace) {
       print('Error in checkBluetoothStatus: $e\n$stackTrace');
       return false;
-    }
-  }
-
-  void _onItemTapped(int index) {
-    // Handle navigation to different pages based on index
-    switch (index) {
-      case 0:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => AboutPage()),
-        );
-        break;
-      case 1:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => MyApp()),
-        );
-        break;
-      case 2:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => CalculatorPage()),
-        );
-        break;
     }
   }
 
@@ -223,7 +186,6 @@ class _MyHomePageState extends State<MyHomePage> {
     return Container(
       padding: EdgeInsets.only(top: 15),
       child: Column(
-        // list of menu items
         children: [
           menuItem(Icons.home, "Home"),
           menuItem(Icons.calculate, "Calculator"),
@@ -233,7 +195,6 @@ class _MyHomePageState extends State<MyHomePage> {
           SizedBox(height: 200),
           menuItem(Icons.settings_applications_sharp, "Settings"),
           menuItem(Icons.login, "LogOut"),
-          // Add more menu items as needed
         ],
       ),
     );
@@ -311,17 +272,15 @@ class _MyHomePageState extends State<MyHomePage> {
       await GoogleSignInApi.logout();
       FirebaseAuth.instance.signOut();
 
-      // Navigate to the login page and replace the current screen
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => MyWelcomeApp()),
       );
-      // Show a success message
+
       showPopup(context, 'Success', 'Successfully Logged Out!');
     } catch (e) {
       print('Error logging out: $e');
 
-      // Show an error message
       showPopup(context, 'Error', 'Failed to log out. Please try again.');
     }
   }
@@ -339,7 +298,7 @@ class _MyHomePageState extends State<MyHomePage> {
           if (showStatusIndicators)
             Row(
               children: [
-                ToggleThemeButton(), // Add the theme toggle button to the AppBar
+                ToggleThemeButton(),
                 if (isOnline)
                   Padding(
                     padding: EdgeInsets.only(right: 8.0),
@@ -378,7 +337,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 themeProvider.showStatusIndicators = !showStatusIndicators;
               });
 
-              // Show a text notification
               if (showStatusIndicators) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -399,36 +357,91 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
         title: Text(
           widget.title,
-          style: TextStyle(color: Colors.white), // Set text color to white
+          style: TextStyle(color: Colors.white),
         ),
         iconTheme: IconThemeData(color: Colors.white),
       ),
       body: GestureDetector(
         onTap: () {
-          // Toggle the visibility of FloatingActionButton on screen tap
           setState(() {
             isFABVisible = !isFABVisible;
           });
         },
         child: quizList(),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor:
-            themeProvider.currentTheme.bottomNavigationBarTheme.backgroundColor,
-        selectedItemColor: themeProvider
-            .currentTheme.bottomNavigationBarTheme.selectedItemColor,
-        unselectedItemColor: themeProvider
-            .currentTheme.bottomNavigationBarTheme.unselectedItemColor,
-        onTap: _onItemTapped,
-        currentIndex: 1,
-        items: [
-          BottomNavigationBarItem(
-              icon: Icon(Icons.account_circle), label: 'About'),
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.calculate), label: 'Calculate'),
-        ],
+      floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
+      floatingActionButton: Column(
+  mainAxisAlignment: MainAxisAlignment.end,
+  crossAxisAlignment: CrossAxisAlignment.end,
+  children: [
+    Visibility(
+      visible: isFABExpanded,
+      child: FloatingActionButton.extended(
+        onPressed: () async {
+          // Add functionality for the first FloatingActionButton
+          // Check for internet connectivity
+          bool isOnline = await checkInternetConnectivity();
+
+          if (isOnline) {
+            // Device is online, proceed to CreateQuiz page
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => CreateQuiz()),
+            );
+          } else {
+            // Device is offline, show a popup message
+            showPopup(
+              context,
+              'OPPs',
+              'You are offline. Cannot create subject.',
+            );
+          }
+        },
+        icon: Icon(
+          Icons.border_color_outlined,
+          color: Colors.white,
+        ),
+        label: Text(
+          'Add Question',
+          style: TextStyle(color: Colors.white),
+        ), // Add text label here
+        backgroundColor: Theme.of(context).primaryColor,
       ),
+    ),
+    SizedBox(height: 16),
+    Visibility(
+      visible: isFABExpanded,
+      child: FloatingActionButton.extended(
+        onPressed: () {
+          // Add functionality for the second FloatingActionButton
+        },
+        icon: Icon(
+          Icons.edit_document,
+          color: Colors.white,
+        ),
+        label: Text(
+          'Edit Quiz',
+          style: TextStyle(color: Colors.white),
+        ), // Add text label here
+        backgroundColor: Theme.of(context).primaryColor,
+      ),
+    ),
+    SizedBox(height: 16),
+    FloatingActionButton(
+      onPressed: () {
+        setState(() {
+          isFABExpanded = !isFABExpanded;
+        });
+      },
+      child: Icon(
+        isFABExpanded ? Icons.close : Icons.add,
+        color: Colors.white,
+      ),
+      backgroundColor: Theme.of(context).primaryColor,
+    ),
+  ],
+),
+
       drawer: Drawer(
         child: SingleChildScrollView(
           child: Container(
@@ -438,35 +451,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 MyDrawerList(),
               ],
             ),
-          ),
-        ),
-      ),
-      floatingActionButton: AnimatedContainer(
-        duration: Duration(milliseconds: 500),
-        margin: EdgeInsets.only(right: isFABVisible ? 0 : -56),
-        child: Visibility(
-          visible: isFABVisible,
-          child: FloatingActionButton(
-            child: Icon(
-              Icons.border_color_outlined,
-              color: Colors.white,
-            ),
-            backgroundColor: themeProvider.currentTheme.primaryColor,
-            onPressed: () async {
-              // Check for internet connectivity
-              bool isOnline = await checkInternetConnectivity();
-
-              if (isOnline) {
-                // Device is online, proceed to CreateQuiz page
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => CreateQuiz()),
-                );
-              } else {
-                // Device is offline, show a popup message
-                showPopup(context, 'OPPs', 'You are offline. Cannot create subject.');
-              }
-            },
           ),
         ),
       ),
@@ -521,7 +505,8 @@ class QuizTile extends StatelessWidget {
           );
         } else {
           // Device is offline, show a popup message
-          showPopup(context, 'OPPs', 'You are offline. Cannot view quiz details.');
+          showPopup(
+              context, 'OPPs', 'You are offline. Cannot view quiz details.');
         }
       },
       child: Container(
@@ -572,9 +557,9 @@ class QuizTile extends StatelessWidget {
       ),
     );
   }
+
   Future<bool> checkInternetConnectivity() async {
     var connectivityResult = await Connectivity().checkConnectivity();
     return connectivityResult != ConnectivityResult.none;
   }
 }
-

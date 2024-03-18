@@ -68,53 +68,54 @@ class _MyHeaderDrawerState extends State<MyHeaderDrawer> {
   }
 
   // Function to save user information to shared preferences
-Future<void> saveUserInfo(String? name, String? email) async {
-  final prefs = await SharedPreferences.getInstance();
-  prefs.setString('userName', name ?? "Your Name");
-  prefs.setString('userEmail', email ?? "Your Email");
-}
+  Future<void> saveUserInfo(String? name, String? email) async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString('userName', name ?? "Your Name");
+    prefs.setString('userEmail', email ?? "Your Email");
+  }
 
 // Function to load user information from GoogleSignIn or Firebase
-Future<void> loadUserInfo() async {
-  final prefs = await SharedPreferences.getInstance();
-  final savedUserName = prefs.getString('userName');
-  final savedUserEmail = prefs.getString('userEmail');
+  Future<void> loadUserInfo() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedUserName = prefs.getString('userName');
+    final savedUserEmail = prefs.getString('userEmail');
 
-  // Set userName variable
-  setState(() {
-    userName = savedUserName;
-  });
-
-  final googleSignIn = GoogleSignIn();
-  final googleSignInAccount = await googleSignIn.signInSilently();
-
-  // Check if the user is signed in with Google
-  if (googleSignInAccount != null && savedUserName != null && savedUserEmail != null) {
+    // Set userName variable
     setState(() {
       userName = savedUserName;
-      userEmail = savedUserEmail;
     });
 
-    // Fetch the user's profile picture using Google People API
-    await fetchProfilePicture(googleSignInAccount.id);
-  }
-  // Check if the user is signed in with Firebase
-  else {
-    final firebaseUser = FirebaseAuth.instance.currentUser;
-    if (firebaseUser != null) {
+    final googleSignIn = GoogleSignIn();
+    final googleSignInAccount = await googleSignIn.signInSilently();
+
+    // Check if the user is signed in with Google
+    if (googleSignInAccount != null) {
+      // Set userName and userEmail using Google Sign-In account
       setState(() {
-        userName = firebaseUser.displayName ?? "Hello!";
-        userEmail = firebaseUser.email ?? "Your Email";
+        userName = googleSignInAccount.displayName;
+        userEmail = googleSignInAccount.email;
       });
 
-      // Use a default profile picture (modify as needed)
-      setState(() {
-        _image = null;
-      });
+      // Fetch the user's profile picture using Google People API
+      await fetchProfilePicture(googleSignInAccount.id);
+    }
+
+    // Check if the user is signed in with Firebase
+    else {
+      final firebaseUser = FirebaseAuth.instance.currentUser;
+      if (firebaseUser != null) {
+        setState(() {
+          userName = firebaseUser.displayName ?? "Hello!";
+          userEmail = firebaseUser.email ?? "Your Email";
+        });
+
+        // Use a default profile picture (modify as needed)
+        setState(() {
+          _image = null;
+        });
+      }
     }
   }
-}
-
 
   // Function to fetch the user's profile picture using Google People API
   Future<void> fetchProfilePicture(String userId) async {
@@ -169,10 +170,10 @@ Future<void> loadUserInfo() async {
   void initState() {
     super.initState();
     // Load the profile picture when the widget initializes
-    loadProfilePicture();
-    // Load user information from GoogleSignIn
-    loadUserInfo();
-    
+    loadProfilePicture().then((_) {
+      // After loading the profile picture, load user information
+      loadUserInfo();
+    });
   }
 
   @override

@@ -166,6 +166,16 @@ class _MyHomePageState extends State<MyHomePage> {
           },
         ),
       ),
+      decoration: BoxDecoration(
+        boxShadow: [
+          BoxShadow(
+            color: Theme.of(context).primaryColor.withOpacity(0.5),
+            spreadRadius: 5,
+            blurRadius: 10,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
     );
   }
 
@@ -319,8 +329,8 @@ class _MyHomePageState extends State<MyHomePage> {
           menuItem(Icons.account_circle, "About"),
           menuItem(Icons.contact_phone_rounded, "Contact"),
           menuItem(Icons.image_rounded, "Gallery"),
-          menuItem(Icons.map_outlined , "Map"),
-          SizedBox(height: 200),
+          menuItem(Icons.map_outlined, "Map"),
+          SizedBox(height: 230),
           menuItem(Icons.settings_applications_sharp, "Settings"),
           menuItem(Icons.login, "LogOut"),
           // Add more menu items as needed
@@ -384,7 +394,7 @@ class _MyHomePageState extends State<MyHomePage> {
           MaterialPageRoute(builder: (context) => PickImage()),
         );
         break;
-        case "Map":
+      case "Map":
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => MapPage()),

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:ClassMe/pages/TeacherPage.dart';
 import 'package:ClassMe/pages/add_question.dart';
 import 'package:ClassMe/services/database.dart';
 
@@ -69,12 +68,39 @@ class _ModifyQuizPageState extends State<ModifyQuizPage> {
               }
               var quizData = snapshot.data!.data()! as Map<String, dynamic>;
               return ListTile(
-                title: Text('Title: ${quizData['quizTitle']}'),
+                title: Text(
+                  'Title: ${quizData['quizTitle']}',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Description: ${quizData['quizDesc']}'),
-                    Text('Image URL: ${quizData['quizImgUrl'] ?? ''}'),
+                    Text(
+                      'Description: ${quizData['quizDesc']}',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(
+                        height:
+                            8), // Add some spacing between the description and the image
+                    // Display the image from the URL in a rounded container
+                    if (quizData['quizImgUrl'] != null &&
+                        quizData['quizImgUrl'] != '')
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius:
+                              BorderRadius.circular(10), // Add rounded edges
+                          color: Colors.grey[300], // Add a background color
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Image.network(
+                            quizData['quizImgUrl'],
+                            width: 300, // Adjust the width as needed
+                            height: 250, // Adjust the height as needed
+                            fit: BoxFit.cover, // Adjust the fit as needed
+                          ),
+                        ),
+                      ),
                   ],
                 ),
                 trailing: IconButton(
@@ -194,59 +220,60 @@ class _ModifyQuizPageState extends State<ModifyQuizPage> {
           ),
           SizedBox(height: 16),
           Align(
-  alignment: Alignment.center,
-  child: Column(
-    children: [
-      ElevatedButton.icon(
-        onPressed: () {
-          // Navigate to the AddQuestion page with the quiz ID
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => AddQuestion(
-                quizId: widget.quizId, // Pass the quiz ID to AddQuestion page
-                databaseService: databaseService,
-              ),
-            ),
-          );
-        },
-        icon: Icon(Icons.add),
-        label: Text('Add Question'),
-      ),
-      ElevatedButton.icon(
-        onPressed: () {
-          // Show a dialog to confirm deleting the entire quiz
-          showDialog(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: Text('Delete Quiz'),
-              content: Text('Are you sure you want to delete this quiz?'),
-              actions: [
-                TextButton(
+            alignment: Alignment.center,
+            child: Column(
+              children: [
+                ElevatedButton.icon(
                   onPressed: () {
-                    Navigator.pop(context);
+                    // Navigate to the AddQuestion page with the quiz ID
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => AddQuestion(
+                          quizId: widget
+                              .quizId, // Pass the quiz ID to AddQuestion page
+                          databaseService: databaseService,
+                        ),
+                      ),
+                    );
                   },
-                  child: Text('Cancel'),
+                  icon: Icon(Icons.add),
+                  label: Text('Add Question'),
                 ),
-                TextButton(
+                ElevatedButton.icon(
                   onPressed: () {
-                    // Delete the entire quiz
-                    databaseService.deleteQuiz(widget.quizId);
-                    Navigator.pop(context);
+                    // Show a dialog to confirm deleting the entire quiz
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: Text('Delete Quiz'),
+                        content:
+                            Text('Are you sure you want to delete this quiz?'),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            child: Text('Cancel'),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              // Delete the entire quiz
+                              databaseService.deleteQuiz(widget.quizId);
+                              Navigator.pop(context);
+                            },
+                            child: Text('Delete'),
+                          ),
+                        ],
+                      ),
+                    );
                   },
-                  child: Text('Delete'),
+                  icon: Icon(Icons.delete),
+                  label: Text('Delete Quiz'),
                 ),
               ],
             ),
-          );
-        },
-        icon: Icon(Icons.delete),
-        label: Text('Delete Quiz'),
-      ),
-    ],
-  ),
-),
-
+          ),
         ],
       ),
     );

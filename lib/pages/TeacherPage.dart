@@ -191,7 +191,7 @@ class _MyHomePageState extends State<MyHomePage> {
           menuItem(Icons.account_circle, "About"),
           menuItem(Icons.contact_phone_rounded, "Contact"),
           menuItem(Icons.image_rounded, "Gallery"),
-          SizedBox(height: 200),
+          SizedBox(height: 270),
           menuItem(Icons.settings_applications_sharp, "Settings"),
           menuItem(Icons.login, "LogOut"),
         ],

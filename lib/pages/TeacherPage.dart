@@ -101,6 +101,16 @@ class _MyHomePageState extends State<MyHomePage> {
           },
         ),
       ),
+    decoration: BoxDecoration(
+        boxShadow: [
+          BoxShadow(
+            color: Theme.of(context).primaryColor.withOpacity(0.5),
+            spreadRadius: 5,
+            blurRadius: 10,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
     );
   }
 
